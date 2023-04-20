@@ -2,21 +2,40 @@ const fs = require("fs");
 const prompt = require("prompt-sync")();
 
 const convertMediaAlumnosCsv = (jsonData) => {
-  let csv = "";
+  let csv = "Nombre;Nota media \n";
+  const alumnos = [];
 
-  // Headers
-  const firstJsonItem = jsonData[0];
-  const headers = Object.keys(firstJsonItem);
+  // Recorre las filas y crea un objeto
+  for (const item of jsonData) {
+    const index = alumnos.findIndex((a) => a.name === item.name);
+    if (index >= 0) {
+      // Si el alumno ya existe, actualiza información de las notas
+      alumnos[index].marksSum += item.mark;
+      alumnos[index].subjectsAmount++;
+    } else {
+      // Si el alumno no existe, lo agrega como un nuevo objeto
+      alumnos.push({
+        name: item.name,
+        marksSum: item.mark,
+        subjectsAmount: 1,
+      });
+    }
+  }
 
-  // Recorre todas las filas
-  jsonData.forEach((item) => {
-    // En cada fila recorre todas sus propiedades
-    headers.forEach((header) => {
-      csv = csv + item[header] + ";";
-    });
-    csv = csv + "\n";
+  // Calculamos la nota media de cada alumno
+  for (const alumno of alumnos) {
+    alumno.average = alumno.marksSum / alumno.subjectsAmount;
+  }
+
+  // Ordenamos el array de alumnos por nota media de mayor a menor
+  alumnos.sort((a, b) => b.average - a.average);
+
+  // Recorre todas las filas para agregarlas a formato CSV
+  alumnos.forEach((alumno) => {
+    csv += `${alumno.name};${alumno.average}\n`
   });
 
+  console.log("Datos en CSV: ");
   console.log(csv);
 
   return csv;
